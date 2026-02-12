@@ -122,6 +122,11 @@ export function createApp(deps?: AppDeps): express.Express {
   // JSON body parser with size limit
   app.use(express.json({ limit: '1mb' }));
 
+  // Root redirect → dashboard
+  app.get('/', (_req, res) => {
+    res.redirect('/dashboard/login');
+  });
+
   // Health check (no rate limiting, no auth)
   app.get('/health', healthHandler);
 

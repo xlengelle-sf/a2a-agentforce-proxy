@@ -1,0 +1,26 @@
+{
+  "name": "a2a-agentforce-proxy",
+  "description": "A2A protocol proxy for Salesforce Agentforce agents",
+  "stack": "heroku-24",
+  "buildpacks": [
+    { "url": "heroku/nodejs" }
+  ],
+  "env": {
+    "SALESFORCE_SERVER_URL": { "required": true, "description": "Salesforce My Domain URL" },
+    "SALESFORCE_CLIENT_ID": { "required": true, "description": "Connected App Consumer Key" },
+    "SALESFORCE_CLIENT_SECRET": { "required": true, "description": "Connected App Consumer Secret" },
+    "SALESFORCE_AGENT_ID": { "required": true, "description": "Agentforce Agent ID" },
+    "SALESFORCE_CLIENT_EMAIL": { "required": true, "description": "Run-as user email for Agent API" },
+    "API_KEY": { "required": true, "generator": "secret", "description": "API key for inbound A2A auth" },
+    "DELEGATE_API_KEY": { "required": true, "generator": "secret", "description": "API key for outbound delegate endpoint" },
+    "SESSION_TTL_SECONDS": { "value": "1800" },
+    "LOG_LEVEL": { "value": "info" },
+    "NODE_ENV": { "value": "production" }
+  },
+  "addons": [
+    "heroku-redis:mini"
+  ],
+  "formation": {
+    "web": { "quantity": 1, "size": "basic" }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Agentforce Proxy",
+  "description": "A2A proxy for Salesforce Agentforce agents",
+  "url": "${BASE_URL}/a2a",
+  "provider": {
+    "organization": "Your Organization",
+    "url": "https://your-org.com"
+  },
+  "version": "1.0.0",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false,
+    "stateTransitionHistory": true
+  },
+  "authentication": {
+    "schemes": ["bearer"]
+  },
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "skills": []
+}

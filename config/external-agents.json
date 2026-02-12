@@ -1,0 +1,11 @@
+{
+  "agents": [
+    {
+      "alias": "example-agent",
+      "url": "https://example-agent.herokuapp.com",
+      "description": "Example A2A agent for testing",
+      "authType": "bearer",
+      "authToken": "ENV:EXAMPLE_AGENT_TOKEN"
+    }
+  ]
+}

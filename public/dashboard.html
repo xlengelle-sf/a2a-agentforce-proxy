@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2A Proxy — Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <header class="dashboard-header">
+      <h1>A2A Agentforce Proxy</h1>
+      <div class="header-actions">
+        <div class="connection-status" id="connection-status">
+          <span class="connection-dot" id="connection-dot"></span>
+          <span id="connection-label">Connecting…</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="logout-btn">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- ── Tab Bar ─────────────────────────────────────────────────────── -->
+    <nav class="tab-bar" role="tablist">
+      <button
+        class="tab-btn active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="tab-conversations"
+        data-tab="conversations"
+      >
+        Conversations
+      </button>
+      <button
+        class="tab-btn"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-wizard"
+        data-tab="wizard"
+      >
+        Setup Wizard
+      </button>
+    </nav>
+
+    <!-- ── Tab: Conversations ──────────────────────────────────────────── -->
+    <main class="tab-content active" id="tab-conversations" role="tabpanel">
+
+      <!-- Stats bar -->
+      <div class="monitor-stats" id="monitor-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="stat-total">0</span>
+          <span class="stat-label">Messages</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-conversations">0</span>
+          <span class="stat-label">Conversations</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="stat-avg-latency">—</span>
+          <span class="stat-label">Avg Latency</span>
+        </div>
+        <div class="stat-item stat-item-action">
+          <button class="btn btn-secondary btn-sm" id="clear-btn" title="Clear display">Clear</button>
+        </div>
+      </div>
+
+      <!-- Conversation threads -->
+      <div class="conversations-container" id="conversations-container">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <h3>No conversations yet</h3>
+          <p>Send a message via the A2A endpoint to see it here.</p>
+          <code>curl -X POST http://localhost:3000/a2a \<br>
+            &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br>
+            &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+            &nbsp;&nbsp;-d '{"jsonrpc":"2.0","id":1,"method":"tasks/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"Hello"}]}}}'
+          </code>
+        </div>
+      </div>
+
+      <!-- Scroll to bottom button -->
+      <button class="scroll-to-bottom" id="scroll-to-bottom" hidden title="Scroll to latest">
+        ↓ New messages
+      </button>
+    </main>
+
+    <!-- ── Tab: Setup Wizard ───────────────────────────────────────────── -->
+    <main class="tab-content" id="tab-wizard" role="tabpanel">
+      <div class="wizard-layout">
+
+        <!-- Progress bar -->
+        <div class="wizard-progress">
+          <div class="wizard-progress-track">
+            <div class="wizard-progress-fill" id="wizard-progress-bar" style="width: 12.5%"></div>
+          </div>
+          <div class="wizard-progress-label" id="wizard-progress-text">Step 1 of 8: Welcome</div>
+        </div>
+
+        <!-- Step content -->
+        <div class="wizard-content" id="wizard-container"></div>
+
+        <!-- Navigation -->
+        <div class="wizard-nav">
+          <button class="btn btn-secondary" id="wizard-prev" disabled>← Back</button>
+          <button class="btn btn-primary" id="wizard-next">Next →</button>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="/js/monitor.js"></script>
+  <script src="/js/wizard.js"></script>
+</body>
+</html>

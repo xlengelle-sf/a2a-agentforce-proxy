@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: A2A Proxy - Delegate API
+  description: |
+    REST API for delegating tasks from Salesforce Agentforce agents to external
+    A2A-compatible agents via the A2A Proxy.
+
+    This spec is designed to be imported as a Salesforce External Service,
+    enabling Agentforce agents to call external A2A agents through agent actions.
+  version: 1.0.0
+  contact:
+    name: A2A Proxy Team
+
+servers:
+  - url: https://{proxyHost}
+    description: A2A Proxy Server
+    variables:
+      proxyHost:
+        default: your-proxy.herokuapp.com
+        description: Hostname of your deployed A2A Proxy
+
+security:
+  - apiKey: []
+
+paths:
+  /api/v1/delegate:
+    post:
+      operationId: delegateTask
+      summary: Delegate a task to an external A2A agent
+      description: |
+        Sends a text message to a registered external A2A agent and returns
+        the agent's response. Supports multi-turn conversations via contextId.
+
+        Use this action when the Agentforce agent needs to consult an external
+        specialist agent for a specific task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DelegateRequest'
+      responses:
+        '200':
+          description: Successful delegation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegateResponse'
+        '400':
+          description: Invalid request (missing agentAlias or message)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (missing or invalid API key)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: External agent error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/agents:
+    get:
+      operationId: listAgents
+      summary: List available external agents
+      description: |
+        Returns the list of configured external A2A agents that can receive
+        delegated tasks. Use this to discover which agents are available
+        before delegating.
+      responses:
+        '200':
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/agents/{alias}/discover:
+    post:
+      operationId: discoverAgent
+      summary: Discover an external agent's capabilities
+      description: |
+        Fetches a fresh Agent Card from the specified external agent,
+        revealing its capabilities, skills, and supported modes.
+      parameters:
+        - name: alias
+          in: path
+          required: true
+          description: The agent's registered alias
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent discovery result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscoverResponse'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: Agent unreachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authenticating delegate requests
+
+  schemas:
+    DelegateRequest:
+      type: object
+      required:
+        - agentAlias
+        - message
+      properties:
+        agentAlias:
+          type: string
+          description: |
+            The registered alias of the external agent to delegate to.
+            Use the listAgents operation to see available aliases.
+          example: weather-agent
+        message:
+          type: string
+          description: |
+            The text message to send to the external agent.
+            This is what the Agentforce agent wants the external agent to process.
+          example: What is the weather in Paris tomorrow?
+        contextId:
+          type: string
+          description: |
+            Optional context ID for multi-turn conversations.
+            Omit for a new conversation; include a previous contextId to continue
+            an existing conversation with the same external agent.
+          example: ctx-abc123
+
+    DelegateResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+          description: Unique identifier for this task
+          example: task-xyz789
+        contextId:
+          type: string
+          description: Context ID for multi-turn conversations (pass back to continue)
+          example: ctx-abc123
+        status:
+          type: string
+          description: |
+            Task status. Values: completed, input-required, failed, canceled.
+            - completed: The agent has provided a final answer
+            - input-required: The agent needs more information
+          enum:
+            - completed
+            - input-required
+            - failed
+            - canceled
+          example: completed
+        response:
+          type: string
+          description: The text response from the external agent
+          example: "Tomorrow in Paris: 18°C, partly cloudy with a chance of rain."
+        artifacts:
+          type: array
+          description: Raw artifacts from the A2A response
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              parts:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    text:
+                      type: string
+              index:
+                type: integer
+
+    AgentListResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            type: object
+            properties:
+              alias:
+                type: string
+                description: Agent alias used in delegate requests
+              url:
+                type: string
+                description: Agent base URL
+              description:
+                type: string
+                description: Human-readable description
+              authType:
+                type: string
+                description: Authentication type (bearer, apiKey, none)
+
+    DiscoverResponse:
+      type: object
+      properties:
+        alias:
+          type: string
+        url:
+          type: string
+        agentCard:
+          type: object
+          description: The full Agent Card as returned by the external agent
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Agent not found

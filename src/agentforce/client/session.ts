@@ -35,8 +35,20 @@ export class AgentforceSession {
     if (!res.ok) {
       const text = await res.text();
       logger.error({ status: res.status, body: text, url, agentId, instanceUrl }, 'Session creation failed');
+
+      let hint = '';
+      if (res.status === 404) {
+        hint =
+          ' — Verify that: (1) the Agent API is enabled on your org, ' +
+          '(2) you created an External Client App (ECA) with the chatbot_api and sfap_api OAuth scopes, ' +
+          '(3) the agent is activated and published, ' +
+          '(4) the agent ID is correct (BotDefinition Id starting with 0Xx)';
+      } else if (res.status === 401) {
+        hint = ' — Access token may be expired or invalid. Try re-authenticating.';
+      }
+
       throw new UpstreamError(
-        `Agentforce session creation failed (${res.status}): ${text}`,
+        `Agentforce session creation failed (${res.status}): ${text || '(empty response)'}${hint}`,
         'agentforce',
       );
     }

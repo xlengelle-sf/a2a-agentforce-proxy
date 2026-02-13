@@ -265,7 +265,7 @@ describe('Setup Wizard API Handlers', () => {
       const calledUrl = mockFetch.mock.calls[0][0] as string;
       expect(calledUrl).toContain('https://my-instance.salesforce.com/services/data/v62.0/query/');
       expect(calledUrl).toContain('BotDefinition');
-      expect(calledUrl).toContain('IsActive');
+      expect(calledUrl).toContain('MasterLabel');
     });
   });
 

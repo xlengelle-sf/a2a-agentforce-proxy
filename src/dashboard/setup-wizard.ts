@@ -74,7 +74,7 @@ export async function handleDiscoverAgents(req: Request, res: Response): Promise
   try {
     const startTime = Date.now();
     const query = encodeURIComponent(
-      "SELECT Id, DeveloperName, MasterLabel FROM BotDefinition WHERE IsActive = true ORDER BY MasterLabel ASC",
+      "SELECT Id, DeveloperName, MasterLabel FROM BotDefinition ORDER BY MasterLabel ASC",
     );
     const url = `https://${serverUrl}/services/data/v62.0/query/?q=${query}`;
 

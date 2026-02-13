@@ -40,6 +40,7 @@ export async function handleTestOAuth(req: Request, res: Response): Promise<void
 
     res.json({
       success: true,
+      accessToken: token.accessToken,
       instanceUrl: token.instanceUrl,
       latencyMs,
       message: 'OAuth authentication successful',

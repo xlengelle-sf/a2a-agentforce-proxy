@@ -235,7 +235,7 @@ function renderOAuth() {
       if (data.success) {
         oauthResult = {
           ...body,
-          accessToken: null, // We'll need to re-auth for token
+          accessToken: data.accessToken,
           instanceUrl: data.instanceUrl,
         };
         resultDiv.innerHTML = `
@@ -302,19 +302,16 @@ function renderAgentSelection() {
           return;
         }
 
-        // Now we need the access token — but test-oauth doesn't return it.
-        // We'll use the discover-agents endpoint which internally fetches via SOQL.
-        // We need to pass the server URL and re-obtain a token.
-        // The wizard backend needs the token, so we have to expose it differently.
-        // For now, let's note that the SOQL query goes through the instance URL.
+        // Use the fresh token from re-authentication
+        oauthResult.accessToken = authData.accessToken;
+        oauthResult.instanceUrl = authData.instanceUrl;
 
-        // Workaround: re-auth and pass credentials for discovery
         const discoverRes = await fetch('/dashboard/api/setup/discover-agents', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             serverUrl: oauthResult.serverUrl,
-            accessToken: '__REAUTH_NEEDED__',
+            accessToken: oauthResult.accessToken,
           }),
         });
         const discoverData = await discoverRes.json();
@@ -394,6 +391,31 @@ function renderAgentTest() {
       const resultDiv = document.getElementById('test-result');
 
       try {
+        // Re-authenticate to get a fresh token
+        resultDiv.innerHTML = '<div class="wizard-info-box">Authenticating…</div>';
+
+        const authRes = await fetch('/dashboard/api/setup/test-oauth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            serverUrl: oauthResult.serverUrl,
+            clientId: oauthResult.clientId,
+            clientSecret: oauthResult.clientSecret,
+            clientEmail: oauthResult.clientEmail,
+          }),
+        });
+        const authData = await authRes.json();
+
+        if (!authData.success) {
+          resultDiv.innerHTML = `<div class="error-message">❌ OAuth re-auth failed: ${escapeHtml(authData.error)}</div>`;
+          testBtn.disabled = false;
+          testBtn.textContent = 'Send Test Message';
+          return;
+        }
+
+        oauthResult.accessToken = authData.accessToken;
+        oauthResult.instanceUrl = authData.instanceUrl;
+
         // Session test first
         resultDiv.innerHTML = '<div class="wizard-info-box">Creating test session…</div>';
 
@@ -401,7 +423,7 @@ function renderAgentTest() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            accessToken: '__FROM_OAUTH__',
+            accessToken: oauthResult.accessToken,
             instanceUrl: oauthResult.instanceUrl,
             agentId: selectedAgent.id,
           }),
@@ -423,7 +445,7 @@ function renderAgentTest() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            accessToken: '__FROM_OAUTH__',
+            accessToken: oauthResult.accessToken,
             instanceUrl: oauthResult.instanceUrl,
             agentId: selectedAgent.id,
             testMessage: text,

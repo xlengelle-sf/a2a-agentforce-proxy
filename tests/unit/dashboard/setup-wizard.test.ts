@@ -132,6 +132,7 @@ describe('Setup Wizard API Handlers', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
+      expect(res.body.accessToken).toBe('test-token');
       expect(res.body.instanceUrl).toBe('https://my-instance.salesforce.com');
       expect(res.body.latencyMs).toBeTypeOf('number');
       expect(res.body.message).toContain('successful');

@@ -21,7 +21,7 @@ export class AgentforceSession {
       bypassUser: true,
     };
 
-    logger.debug({ url, agentId }, 'Creating Agentforce session');
+    logger.info({ url, agentId, instanceUrl, bodyPayload: body }, 'Creating Agentforce session');
 
     const res = await fetch(url, {
       method: 'POST',
@@ -34,7 +34,7 @@ export class AgentforceSession {
 
     if (!res.ok) {
       const text = await res.text();
-      logger.error({ status: res.status, body: text }, 'Session creation failed');
+      logger.error({ status: res.status, body: text, url, agentId, instanceUrl }, 'Session creation failed');
       throw new UpstreamError(
         `Agentforce session creation failed (${res.status}): ${text}`,
         'agentforce',

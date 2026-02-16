@@ -235,6 +235,23 @@ export function handleVerifyProxy(_req: Request, res: Response): void {
   });
 }
 
+// ─── Reveal API Key ──────────────────────────────────────────────────────────
+
+export function handleRevealApiKey(_req: Request, res: Response): void {
+  const apiKey = process.env.API_KEY;
+  const delegateApiKey = process.env.DELEGATE_API_KEY;
+
+  if (!apiKey) {
+    res.status(404).json({ error: 'API_KEY is not set' });
+    return;
+  }
+
+  res.json({
+    apiKey,
+    delegateApiKey: delegateApiKey ?? null,
+  });
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Mask a value showing first 4 chars + "***" */

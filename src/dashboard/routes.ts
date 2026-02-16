@@ -21,6 +21,7 @@ import {
   handleTestSession,
   handleTestMessage,
   handleVerifyProxy,
+  handleRevealApiKey,
 } from './setup-wizard.js';
 import { logger } from '../shared/logger.js';
 import type { ConversationEventStore } from './event-store.js';
@@ -106,6 +107,7 @@ export function createDashboardRouter(deps: DashboardDeps): Router {
   router.post('/api/setup/test-session', handleTestSession);
   router.post('/api/setup/test-message', handleTestMessage);
   router.get('/api/setup/verify-proxy', handleVerifyProxy);
+  router.get('/api/setup/reveal-api-key', handleRevealApiKey);
 
   return router;
 }

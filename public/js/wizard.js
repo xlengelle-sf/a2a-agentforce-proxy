@@ -513,6 +513,13 @@ DELEGATE_API_KEY=<generate-a-strong-key></pre>
 
       <button class="btn btn-primary" id="verify-btn" style="margin-top:16px;">Verify Current Config</button>
       <div id="verify-result" style="margin-top:12px;"></div>
+
+      <div class="wizard-info-box" style="margin-top:20px; border-left: 4px solid #f59e0b; background: #fffbeb; padding: 12px 16px;">
+        <strong>⚠️ Important — Save your API Key</strong>
+        <p style="margin:8px 0 4px;">Once set, the <code>API_KEY</code> is needed to authenticate requests to the proxy and to configure the Named Credential in Salesforce (next step).</p>
+        <button class="btn btn-sm btn-secondary" id="reveal-api-key-btn">🔑 Reveal API Key</button>
+        <div id="api-key-display" style="margin-top:8px;"></div>
+      </div>
     </div>
   `;
 
@@ -563,40 +570,88 @@ DELEGATE_API_KEY=<generate-a-strong-key></pre>
 
     btn.disabled = false;
   });
+
+  document.getElementById('reveal-api-key-btn')?.addEventListener('click', async () => {
+    const display = document.getElementById('api-key-display');
+    try {
+      const res = await fetch('/dashboard/api/setup/reveal-api-key');
+      const data = await res.json();
+      if (!res.ok) {
+        display.innerHTML = `<div class="error-message">❌ ${escapeHtml(data.error || 'Could not retrieve API key')}</div>`;
+        return;
+      }
+      display.innerHTML = `
+        <div style="background:#1e293b; color:#e2e8f0; padding:12px; border-radius:6px; font-family:monospace; font-size:13px; word-break:break-all;">
+          <div style="margin-bottom:8px;"><strong style="color:#94a3b8;">API_KEY:</strong><br>${escapeHtml(data.apiKey)}</div>
+          ${data.delegateApiKey ? `<div><strong style="color:#94a3b8;">DELEGATE_API_KEY:</strong><br>${escapeHtml(data.delegateApiKey)}</div>` : '<div style="color:#94a3b8; font-style:italic;">DELEGATE_API_KEY: not set</div>'}
+        </div>
+        <button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="navigator.clipboard.writeText('${data.apiKey}').then(() => { this.textContent = 'Copied!'; setTimeout(() => { this.textContent = 'Copy API Key'; }, 2000); })">Copy API Key</button>`;
+    } catch (err) {
+      display.innerHTML = `<div class="error-message">❌ ${escapeHtml(err.message)}</div>`;
+    }
+  });
 }
 
 function renderOutboundSetup() {
   wizardContainer.innerHTML = `
     <div class="wizard-step">
       <h2>Outbound A2A Setup (Optional)</h2>
-      <p>Allow Agentforce to call external A2A agents through the proxy.</p>
+      <p>Allow Agentforce to call external A2A agents through the proxy. This requires creating an External Credential and a Named Credential in Salesforce.</p>
 
       <div class="wizard-instructions">
         <div class="wizard-instruction-step">
           <span class="instruction-number">1</span>
           <div>
-            <strong>Create Named Credential</strong>
-            <p>Setup → Named Credentials → New Named Credential<br>
-            URL: <code>${window.location.origin}/api/v1/delegate</code><br>
-            Authentication: Custom Header<br>
-            Header Name: <code>X-API-Key</code><br>
-            Header Value: Your <code>DELEGATE_API_KEY</code> value</p>
+            <strong>Create an External Credential</strong>
+            <p>Setup → Named Credentials → <strong>External Credentials</strong> tab → New</p>
+            <ul style="margin:8px 0; padding-left:20px; line-height:1.8;">
+              <li><strong>Label:</strong> <code>A2A Proxy</code></li>
+              <li><strong>Name:</strong> <code>A2AProxy</code></li>
+              <li><strong>Authentication Protocol:</strong> <code>Custom</code></li>
+            </ul>
+            <p>After saving, on the External Credential detail page:</p>
+            <ul style="margin:8px 0; padding-left:20px; line-height:1.8;">
+              <li>In <strong>Principals</strong> section → New:<br>
+                Parameter Name: <code>NamedPrincipal</code>, Sequence Number: <code>1</code>, Identity Type: <code>Named Principal</code></li>
+              <li>In <strong>Custom Headers</strong> section → New:<br>
+                Name: <code>X-API-Key</code>, Value: your <code>API_KEY</code> value (from previous step), Sequence Number: <code>1</code></li>
+            </ul>
           </div>
         </div>
 
         <div class="wizard-instruction-step">
           <span class="instruction-number">2</span>
           <div>
-            <strong>Create External Service</strong>
-            <p>Setup → External Services → New → From API Specification<br>
-            Point to your proxy's OpenAPI spec or manually define the delegate endpoint.</p>
+            <strong>Create a Named Credential</strong>
+            <p>Setup → Named Credentials → <strong>Named Credentials</strong> tab → New</p>
+            <ul style="margin:8px 0; padding-left:20px; line-height:1.8;">
+              <li><strong>Label:</strong> <code>A2A Proxy</code></li>
+              <li><strong>Name:</strong> <code>A2APROXY</code></li>
+              <li><strong>URL:</strong> <code>${window.location.origin}/api/v1/delegate</code></li>
+              <li><strong>Enabled for Callouts:</strong> ✅ checked</li>
+              <li><strong>External Credential:</strong> select <code>A2A Proxy</code> (created in step 1)</li>
+            </ul>
+            <p>Under <strong>Callout Options</strong>:</p>
+            <ul style="margin:8px 0; padding-left:20px; line-height:1.8;">
+              <li><strong>Generate Authorization Header:</strong> ☐ <em>unchecked</em> (the X-API-Key custom header handles authentication)</li>
+            </ul>
           </div>
         </div>
 
         <div class="wizard-instruction-step">
           <span class="instruction-number">3</span>
           <div>
-            <strong>Create Agent Action</strong>
+            <strong>Create External Service (optional)</strong>
+            <p>Setup → External Services → New → From API Specification<br>
+            Point to your proxy's OpenAPI spec or manually define the delegate endpoint.<br>
+            Select the Named Credential <code>A2A Proxy</code> created above.</p>
+          </div>
+        </div>
+
+        <div class="wizard-instruction-step">
+          <span class="instruction-number">4</span>
+          <div>
+            <strong>Create Agent Action (optional)</strong>
             <p>In Agent Builder, add a new action:<br>
             Type: Apex / Flow / External Service<br>
             Point to the External Service created above.<br>

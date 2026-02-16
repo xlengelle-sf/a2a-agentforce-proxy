@@ -189,16 +189,30 @@ export function createDelegateHandler(deps: DelegateHandlerDeps) {
 /**
  * Factory that creates the list-agents handler.
  *
- * GET /api/v1/agents
+ * POST /api/v1/agents
+ *
+ * Accepts an optional { filter } body to search agents by alias or description.
+ * Returns all agents when filter is empty or omitted.
  */
 export function createListAgentsHandler(deps: DelegateHandlerDeps) {
-  return (_req: Request, res: Response): void => {
-    const agents = deps.agentRegistry.listAgents().map((a) => ({
+  return (req: Request, res: Response): void => {
+    const body = req.body as { filter?: string } | undefined;
+    const filter = (body?.filter ?? '').trim().toLowerCase();
+
+    let agents = deps.agentRegistry.listAgents().map((a) => ({
       alias: a.alias,
       url: a.url,
       description: a.description ?? '',
       authType: a.authType,
     }));
+
+    if (filter) {
+      agents = agents.filter(
+        (a) =>
+          a.alias.toLowerCase().includes(filter) ||
+          a.description.toLowerCase().includes(filter),
+      );
+    }
 
     res.json({ agents });
   };

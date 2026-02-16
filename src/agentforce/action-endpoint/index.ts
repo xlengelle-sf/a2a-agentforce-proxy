@@ -14,14 +14,14 @@ export type { DelegateHandlerDeps } from './delegate.js';
  *
  * Routes:
  *   POST  /api/v1/delegate              — Send message to external A2A agent
- *   GET   /api/v1/agents                — List configured external agents
+ *   POST  /api/v1/agents                — List configured external agents (with optional filter)
  *   POST  /api/v1/agents/:alias/discover — Fetch fresh Agent Card for an agent
  */
 export function createDelegateRouter(deps: DelegateHandlerDeps): Router {
   const router = Router();
 
   router.post('/api/v1/delegate', delegateAuth, createDelegateHandler(deps));
-  router.get('/api/v1/agents', delegateAuth, createListAgentsHandler(deps));
+  router.post('/api/v1/agents', delegateAuth, createListAgentsHandler(deps));
   router.post('/api/v1/agents/:alias/discover', delegateAuth, createDiscoverAgentHandler(deps));
 
   return router;

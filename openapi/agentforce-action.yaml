@@ -72,13 +72,19 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /api/v1/agents:
-    get:
+    post:
       operationId: listAgents
       summary: List available external agents
       description: |
         Returns the list of configured external A2A agents that can receive
         delegated tasks. Use this to discover which agents are available
-        before delegating.
+        before delegating. Optionally filter by alias or description.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListAgentsRequest'
       responses:
         '200':
           description: List of agents
@@ -208,6 +214,18 @@ components:
                       type: string
               index:
                 type: integer
+
+    ListAgentsRequest:
+      type: object
+      required:
+        - filter
+      properties:
+        filter:
+          type: string
+          description: |
+            Optional search term to filter agents by alias or description.
+            Pass an empty string to return all agents.
+          example: nfl
 
     AgentListResponse:
       type: object

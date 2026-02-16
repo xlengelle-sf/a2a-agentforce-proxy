@@ -534,20 +534,29 @@ DELEGATE_API_KEY=<generate-a-strong-key></pre>
       const res = await fetch('/dashboard/api/setup/verify-proxy');
       const data = await res.json();
 
+      if (!res.ok) {
+        resultDiv.innerHTML = `<div class="error-message">❌ ${escapeHtml(data.error?.message || data.error || 'Verification request failed')}</div>`;
+        btn.disabled = false;
+        return;
+      }
+
       if (data.healthy) {
         resultDiv.innerHTML = '<div class="success-message">✅ All required environment variables are set.</div>';
       } else {
+        const issues = Array.isArray(data.issues) ? data.issues : [];
         resultDiv.innerHTML = `
           <div class="error-message">
             ⚠️ Configuration issues:<br>
-            ${data.issues.map((i) => `• ${escapeHtml(i)}`).join('<br>')}
+            ${issues.map((i) => `• ${escapeHtml(i)}`).join('<br>')}
           </div>`;
       }
 
-      resultDiv.innerHTML += `
-        <div class="wizard-code-block" style="margin-top:12px;">
-          <pre>${JSON.stringify(data.config, null, 2)}</pre>
-        </div>`;
+      if (data.config) {
+        resultDiv.innerHTML += `
+          <div class="wizard-code-block" style="margin-top:12px;">
+            <pre>${JSON.stringify(data.config, null, 2)}</pre>
+          </div>`;
+      }
     } catch (err) {
       resultDiv.innerHTML = `<div class="error-message">❌ ${escapeHtml(err.message)}</div>`;
     }

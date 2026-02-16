@@ -1,11 +1,11 @@
 {
   "agents": [
     {
-      "alias": "example-agent",
-      "url": "https://example-agent.herokuapp.com",
-      "description": "Example A2A agent for testing",
+      "alias": "nfl-agent",
+      "url": "https://nfl-a2a-agent-877d0faf16cd.herokuapp.com",
+      "description": "NFL Expert Agent — answers questions about NFL teams, players, rules, stats, history, and fantasy football",
       "authType": "bearer",
-      "authToken": "ENV:EXAMPLE_AGENT_TOKEN"
+      "authToken": "ENV:NFL_AGENT_TOKEN"
     }
   ]
 }

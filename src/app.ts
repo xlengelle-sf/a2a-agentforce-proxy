@@ -67,6 +67,9 @@ function getPublicDir(): string {
 export function createApp(deps?: AppDeps): express.Express {
   const app = express();
 
+  // Trust first proxy (Heroku router) so rate limiting & IP detection work
+  app.set('trust proxy', 1);
+
   // CORS (before helmet so preflight works)
   app.use(cors(buildCorsOptions()));
 
@@ -95,6 +98,16 @@ export function createApp(deps?: AppDeps): express.Express {
     // Serve static files (CSS, JS) — no auth required for these
     app.use('/css', dashboardHelmet, express.static(path.join(publicDir, 'css')));
     app.use('/js', dashboardHelmet, express.static(path.join(publicDir, 'js')));
+
+    // Serve OpenAPI spec (used by Salesforce External Service import)
+    const projectRoot = path.dirname(publicDir);
+    app.use('/openapi', express.static(path.join(projectRoot, 'openapi'), {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
+          res.setHeader('Content-Type', 'text/yaml; charset=utf-8');
+        }
+      },
+    }));
 
     // Dashboard routes need form-urlencoded + JSON parsing
     const eventStore = new ConversationEventStore();

@@ -13,12 +13,15 @@ import { createDashboardRouter } from './dashboard/routes.js';
 import { ConversationEventStore } from './dashboard/event-store.js';
 import type { JsonRpcHandlerDeps } from './a2a/server/jsonrpc-handler.js';
 import type { DelegateHandlerDeps } from './agentforce/action-endpoint/delegate.js';
+import type { AgentRegistry } from './config/agent-registry.js';
 
 export interface AppDeps {
   a2a?: JsonRpcHandlerDeps;
   delegate?: DelegateHandlerDeps;
   /** Set to false to skip dashboard setup (e.g. in API-only tests). */
   enableDashboard?: boolean;
+  /** Agent registry for dashboard agent management UI. */
+  agentRegistry?: AgentRegistry;
 }
 
 // ─── Rate Limiters ──────────────────────────────────────────────────────────
@@ -115,6 +118,7 @@ export function createApp(deps?: AppDeps): express.Express {
     const dashboardRouter = createDashboardRouter({
       eventStore,
       publicDir,
+      agentRegistry: deps?.agentRegistry,
     });
 
     // Mount with relaxed helmet + form body parser

@@ -36,6 +36,15 @@
         class="tab-btn"
         role="tab"
         aria-selected="false"
+        aria-controls="tab-agents"
+        data-tab="agents"
+      >
+        Agents
+      </button>
+      <button
+        class="tab-btn"
+        role="tab"
+        aria-selected="false"
         aria-controls="tab-wizard"
         data-tab="wizard"
       >
@@ -85,6 +94,87 @@
       </button>
     </main>
 
+    <!-- ── Tab: Agents ────────────────────────────────────────────────── -->
+    <main class="tab-content" id="tab-agents" role="tabpanel">
+      <div class="agents-layout">
+
+        <!-- External A2A Agents Section -->
+        <section class="agents-section">
+          <div class="agents-section-header">
+            <div>
+              <h2>External A2A Agents</h2>
+              <p>Agents registered in the proxy that can receive delegated tasks from Agentforce.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="add-external-agent-btn">+ Add Agent</button>
+          </div>
+          <div class="agents-list" id="external-agents-list">
+            <div class="agents-loading">Loading agents...</div>
+          </div>
+        </section>
+
+        <!-- Agentforce Config Section -->
+        <section class="agents-section">
+          <div class="agents-section-header">
+            <div>
+              <h2>Agentforce Configuration</h2>
+              <p>Salesforce Agentforce agent connected to this proxy (configured via environment variables).</p>
+            </div>
+          </div>
+          <div class="agents-list" id="agentforce-agents-list">
+            <div class="agents-loading">Loading configuration...</div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- ── Agent Modal ──────────────────────────────────────────────── -->
+    <div class="modal-overlay" id="agent-modal-overlay" hidden>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="agent-modal-title">Add External Agent</h3>
+          <button class="modal-close" id="agent-modal-close">&times;</button>
+        </div>
+        <form id="agent-modal-form">
+          <div class="form-group">
+            <label for="agent-alias">Alias</label>
+            <input type="text" id="agent-alias" name="alias" placeholder="e.g. weather-agent" required>
+            <small>Unique identifier used in delegate requests</small>
+          </div>
+          <div class="form-group">
+            <label for="agent-url">URL</label>
+            <input type="url" id="agent-url" name="url" placeholder="https://my-agent.herokuapp.com" required>
+            <small>Base URL of the A2A agent</small>
+          </div>
+          <div class="form-group">
+            <label for="agent-description">Description</label>
+            <input type="text" id="agent-description" name="description" placeholder="What does this agent do?">
+          </div>
+          <div class="form-group">
+            <label for="agent-auth-type">Auth Type</label>
+            <select id="agent-auth-type" name="authType">
+              <option value="bearer">Bearer Token</option>
+              <option value="apiKey">API Key (Header)</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div class="form-group" id="agent-token-group">
+            <label for="agent-auth-token">Auth Token</label>
+            <input type="text" id="agent-auth-token" name="authToken" placeholder="token or ENV:VAR_NAME">
+            <small>Use <code>ENV:MY_VAR</code> to read from an environment variable</small>
+          </div>
+          <div class="form-group" id="agent-header-group" hidden>
+            <label for="agent-auth-header">Auth Header Name</label>
+            <input type="text" id="agent-auth-header" name="authHeader" placeholder="X-API-Key">
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" id="agent-modal-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="agent-modal-save">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- ── Tab: Setup Wizard ───────────────────────────────────────────── -->
     <main class="tab-content" id="tab-wizard" role="tabpanel">
       <div class="wizard-layout">
@@ -112,6 +202,7 @@
   </div>
 
   <script src="/js/monitor.js"></script>
+  <script src="/js/agents.js"></script>
   <script src="/js/wizard.js"></script>
 </body>
 </html>

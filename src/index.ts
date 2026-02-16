@@ -47,6 +47,7 @@ const app = createApp({
     sessionManager,
     tenantId: 'proxy',
   },
+  agentRegistry,
 });
 
 // Redis health status (set when store is initialized in production wiring)

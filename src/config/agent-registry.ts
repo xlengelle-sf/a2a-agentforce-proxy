@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { logger } from '../shared/logger.js';
@@ -22,10 +22,11 @@ interface AgentRegistryFile {
 
 export class AgentRegistry {
   private agents: Map<string, ExternalAgentConfig> = new Map();
+  private configFilePath: string;
 
   constructor(configPath?: string) {
-    const resolvedPath = configPath ?? this.defaultConfigPath();
-    this.load(resolvedPath);
+    this.configFilePath = configPath ?? this.defaultConfigPath();
+    this.load(this.configFilePath);
   }
 
   /** Get an agent by alias. */
@@ -74,6 +75,55 @@ export class AgentRegistry {
       case 'none':
       default:
         return {};
+    }
+  }
+
+  // ── CRUD operations ──────────────────────────────────────────────────────
+
+  /** Add a new agent. Throws if alias already exists. */
+  addAgent(agent: ExternalAgentConfig): void {
+    if (this.agents.has(agent.alias)) {
+      throw new Error(`Agent with alias "${agent.alias}" already exists`);
+    }
+    this.agents.set(agent.alias, agent);
+    this.persist();
+    logger.info({ alias: agent.alias }, 'External agent added');
+  }
+
+  /** Update an existing agent by alias. Throws if not found. */
+  updateAgent(alias: string, updates: Partial<Omit<ExternalAgentConfig, 'alias'>>): ExternalAgentConfig {
+    const existing = this.agents.get(alias);
+    if (!existing) {
+      throw new Error(`Agent with alias "${alias}" not found`);
+    }
+    const updated: ExternalAgentConfig = { ...existing, ...updates, alias };
+    this.agents.set(alias, updated);
+    this.persist();
+    logger.info({ alias }, 'External agent updated');
+    return updated;
+  }
+
+  /** Delete an agent by alias. Throws if not found. */
+  deleteAgent(alias: string): void {
+    if (!this.agents.has(alias)) {
+      throw new Error(`Agent with alias "${alias}" not found`);
+    }
+    this.agents.delete(alias);
+    this.persist();
+    logger.info({ alias }, 'External agent deleted');
+  }
+
+  /** Persist current agents to the JSON config file. */
+  private persist(): void {
+    try {
+      const data: AgentRegistryFile = {
+        agents: Array.from(this.agents.values()),
+      };
+      writeFileSync(this.configFilePath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+      logger.debug({ path: this.configFilePath }, 'Agent registry persisted');
+    } catch (err) {
+      logger.error({ err, path: this.configFilePath }, 'Failed to persist agent registry');
+      throw new Error('Failed to save agent configuration');
     }
   }
 

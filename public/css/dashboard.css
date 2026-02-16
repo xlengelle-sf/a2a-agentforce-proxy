@@ -969,6 +969,314 @@ body {
   line-height: 1.5;
 }
 
+/* ── Agents Tab ──────────────────────────────────────────────────────────── */
+
+.agents-layout {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.agents-section {
+  margin-bottom: 32px;
+}
+
+.agents-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.agents-section-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.agents-section-header p {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.agents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agents-loading,
+.agents-error {
+  text-align: center;
+  padding: 32px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.agents-error {
+  color: var(--color-danger);
+}
+
+.agents-empty {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--color-text-secondary);
+}
+
+.agents-empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.agents-empty p {
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+.agents-empty code {
+  background: var(--color-input-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* ── Agent Row Card ──────────────────────────────────────────────────────── */
+
+.agent-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.agent-row:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-primary);
+}
+
+.agent-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-row-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.agent-alias-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.agent-row-url {
+  font-size: 13px;
+  color: var(--color-primary);
+  word-break: break-all;
+  margin-bottom: 4px;
+}
+
+.agent-row-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.agent-row-token {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.agent-row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+/* ── Auth Badges ─────────────────────────────────────────────────────────── */
+
+.auth-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.auth-bearer {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+.auth-apikey {
+  background: #fef3e0;
+  color: #e65100;
+}
+
+.auth-none {
+  background: var(--color-input-bg);
+  color: var(--color-text-secondary);
+}
+
+.auth-oauth {
+  background: #e6f4ea;
+  color: #1e8e3e;
+}
+
+/* Token display */
+
+.token-env {
+  background: var(--color-input-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.token-masked {
+  color: var(--color-text-secondary);
+  letter-spacing: 2px;
+}
+
+.token-none {
+  color: var(--color-text-secondary);
+}
+
+.env-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--color-input-bg);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Agentforce Config Fields ────────────────────────────────────────────── */
+
+.agentforce-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+  margin-top: 8px;
+}
+
+.af-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.af-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.af-field-value {
+  font-size: 13px;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.af-field-value.mono {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.modal-close:hover {
+  background: var(--color-input-bg);
+  color: var(--color-text);
+}
+
+.modal-card form {
+  padding: 24px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
@@ -1021,6 +1329,35 @@ body {
   .scroll-to-bottom {
     bottom: 16px;
     right: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .agents-layout {
+    padding: 16px;
+  }
+
+  .agents-section-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .agent-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .agent-row-actions {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+  .agentforce-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-card {
+    margin: 12px;
   }
 }
 

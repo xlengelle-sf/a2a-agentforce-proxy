@@ -6,6 +6,11 @@ import { validateEnv } from './config/env-validator.js';
 import { getConfig } from './config/config-manager.js';
 import { setRedisStatus } from './shared/health.js';
 import { createApp } from './app.js';
+import { AgentRegistry } from './config/agent-registry.js';
+import { AgentCardResolver } from './a2a/client/agent-card-resolver.js';
+import { A2AClient } from './a2a/client/a2a-client.js';
+import { MemoryStore } from './session/memory-store.js';
+import { SessionManager } from './session/session-manager.js';
 
 // ─── Unhandled Rejection Handler ─────────────────────────────────────────────
 // Log but do NOT crash — Heroku would restart and lose all in-flight requests.
@@ -24,10 +29,25 @@ validateEnv();
 
 const config = getConfig();
 
-// Note: Full wiring with Agentforce client, session manager, agent registry,
-// and A2A client happens when deploying. The createApp() call without deps
-// still serves health checks and can be extended in deployment scripts.
-const app = createApp();
+// ─── Wire delegate dependencies ─────────────────────────────────────────────
+
+const agentRegistry = new AgentRegistry();
+const cardResolver = new AgentCardResolver();
+const a2aClient = new A2AClient(cardResolver);
+const sessionStore = new MemoryStore();
+const sessionManager = new SessionManager(sessionStore, {
+  ttlSeconds: config.sessionTtlSeconds,
+});
+sessionManager.startCleanupInterval();
+
+const app = createApp({
+  delegate: {
+    a2aClient,
+    agentRegistry,
+    sessionManager,
+    tenantId: 'proxy',
+  },
+});
 
 // Redis health status (set when store is initialized in production wiring)
 if (config.redisUrl || config.redisTlsUrl) {

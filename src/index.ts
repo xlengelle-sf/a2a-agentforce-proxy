@@ -6,9 +6,11 @@ import { validateEnv } from './config/env-validator.js';
 import { getConfig } from './config/config-manager.js';
 import { setRedisStatus } from './shared/health.js';
 import { createApp } from './app.js';
+import type { AppDeps } from './app.js';
 import { AgentRegistry } from './config/agent-registry.js';
 import { AgentCardResolver } from './a2a/client/agent-card-resolver.js';
 import { A2AClient } from './a2a/client/a2a-client.js';
+import { AgentforceClient } from './agentforce/client/index.js';
 import { MemoryStore } from './session/memory-store.js';
 import { SessionManager } from './session/session-manager.js';
 
@@ -40,7 +42,13 @@ const sessionManager = new SessionManager(sessionStore, {
 });
 sessionManager.startCleanupInterval();
 
-const app = createApp({
+// ─── Wire inbound A2A dependencies (A2A → Agentforce) ──────────────────────
+
+const sfConfig = config.salesforce;
+const hasSalesforceConfig =
+  sfConfig.serverUrl && sfConfig.clientId && sfConfig.clientSecret && sfConfig.agentId && sfConfig.clientEmail;
+
+const appDeps: AppDeps = {
   delegate: {
     a2aClient,
     agentRegistry,
@@ -48,7 +56,29 @@ const app = createApp({
     tenantId: 'proxy',
   },
   agentRegistry,
-});
+};
+
+if (hasSalesforceConfig) {
+  const agentforceClient = new AgentforceClient({
+    serverUrl: sfConfig.serverUrl,
+    clientId: sfConfig.clientId,
+    clientSecret: sfConfig.clientSecret,
+    clientEmail: sfConfig.clientEmail,
+    agentId: sfConfig.agentId,
+  });
+
+  appDeps.a2a = {
+    agentforceClient,
+    sessionManager,
+    tenantId: 'proxy',
+  };
+
+  logger.info('Inbound A2A → Agentforce path enabled');
+} else {
+  logger.warn('Salesforce credentials not configured — inbound A2A path disabled');
+}
+
+const app = createApp(appDeps);
 
 // Redis health status (set when store is initialized in production wiring)
 if (config.redisUrl || config.redisTlsUrl) {

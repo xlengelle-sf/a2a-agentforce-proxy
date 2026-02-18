@@ -356,67 +356,189 @@ body {
   scroll-behavior: smooth;
 }
 
-/* ── Empty State ─────────────────────────────────────────────────────────── */
+/* ── Filter Bar ─────────────────────────────────────────────────────────── */
 
-.empty-state {
+.filter-bar {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--color-text-secondary);
+  justify-content: space-between;
+  padding: 8px 24px;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
-.empty-state-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+.filter-chips {
+  display: flex;
+  gap: 6px;
 }
 
-.empty-state h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 8px;
-}
-
-.empty-state p {
-  font-size: 14px;
-  margin-bottom: 16px;
-  max-width: 400px;
-}
-
-.empty-state code {
-  display: block;
-  background: var(--color-text);
-  color: #e0e0e0;
-  padding: 16px 20px;
-  border-radius: var(--radius-sm);
+.filter-chip {
+  font-family: var(--font-family);
   font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filter-chip.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.filter-agent select {
+  font-family: var(--font-family);
+  font-size: 12px;
+  padding: 5px 28px 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2386868b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.filter-agent select:hover {
+  border-color: var(--color-primary);
+}
+
+/* ── Tip Bar ────────────────────────────────────────────────────────────── */
+
+.tip-bar {
+  margin: 0 24px 16px;
+  border-radius: var(--radius-md);
+  background: #f0f4ff;
+  border: 1px solid #d6e0ff;
+  overflow: hidden;
+}
+
+.tip-bar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.tip-bar-header:hover {
+  background: #e6ecff;
+}
+
+.tip-bar-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.tip-bar-text {
+  font-size: 13px;
+  color: #4a5568;
+  flex: 1;
+}
+
+.tip-bar-text code {
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--color-primary);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.tip-bar-chevron {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.tip-bar.expanded .tip-bar-chevron {
+  transform: rotate(90deg);
+}
+
+.tip-bar-detail {
+  padding: 0 16px 12px;
+}
+
+.tip-bar-detail pre {
+  background: #1d1d1f;
+  color: #e0e0e0;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
   line-height: 1.6;
-  text-align: left;
-  max-width: 100%;
   overflow-x: auto;
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 
-/* ── Conversation Thread ─────────────────────────────────────────────────── */
+/* ── Date Separator ─────────────────────────────────────────────────────── */
+
+.date-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  margin: 4px 0;
+}
+
+.date-separator::before,
+.date-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.date-separator-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* ── Conversation Thread (Accordion Card) ───────────────────────────────── */
 
 .conversation-thread {
   background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.conversation-thread:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.conversation-thread:not(.collapsed):hover {
+  transform: none;
 }
 
 .thread-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   user-select: none;
   transition: background-color 0.15s;
@@ -436,7 +558,7 @@ body {
 .thread-header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   flex-shrink: 0;
 }
 
@@ -446,13 +568,18 @@ body {
   width: 14px;
   text-align: center;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.conversation-thread:not(.collapsed) .thread-toggle {
+  transform: rotate(90deg);
 }
 
 .thread-direction-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 3px 10px;
+  border-radius: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
@@ -478,20 +605,50 @@ body {
 }
 
 .thread-count {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-secondary);
   white-space: nowrap;
+  background: var(--color-input-bg);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
 .thread-time {
   font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.thread-date {
+  font-size: 11px;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
-/* Collapsed thread hides messages */
+/* Collapsed → hide messages with animation */
 .conversation-thread.collapsed .thread-messages {
-  display: none;
+  max-height: 0;
+  padding: 0 16px;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
+}
+
+/* Expanded → show messages */
+.conversation-thread:not(.collapsed) .thread-messages {
+  max-height: 2000px;
+  opacity: 1;
+  transition: max-height 0.35s ease, padding 0.25s ease, opacity 0.25s ease 0.05s;
+}
+
+/* No bottom border on collapsed thread headers */
+.conversation-thread.collapsed .thread-header {
+  border-bottom: none;
+}
+
+.conversation-thread:not(.collapsed) .thread-header {
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* ── Thread Messages ─────────────────────────────────────────────────────── */
@@ -1326,6 +1483,14 @@ body {
     padding: 12px;
   }
 
+  .filter-bar {
+    padding: 8px 16px;
+  }
+
+  .tip-bar {
+    margin: 0 16px 12px;
+  }
+
   .thread-agents {
     font-size: 12px;
   }
@@ -1385,5 +1550,15 @@ body {
 
   .thread-direction-badge {
     display: none;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .filter-chips {
+    justify-content: center;
   }
 }

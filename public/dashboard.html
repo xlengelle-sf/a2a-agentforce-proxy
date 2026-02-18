@@ -74,17 +74,37 @@
         </div>
       </div>
 
+      <!-- Filter bar -->
+      <div class="filter-bar" id="filter-bar">
+        <div class="filter-chips" id="filter-direction">
+          <button class="filter-chip active" data-direction="all">All</button>
+          <button class="filter-chip" data-direction="inbound">↙ Inbound</button>
+          <button class="filter-chip" data-direction="outbound">↗ Outbound</button>
+        </div>
+        <div class="filter-agent">
+          <select id="filter-agent-select">
+            <option value="all">All agents</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Conversation threads -->
       <div class="conversations-container" id="conversations-container">
-        <div class="empty-state" id="empty-state">
-          <div class="empty-state-icon">💬</div>
-          <h3>No conversations yet</h3>
-          <p>Send a message via the A2A endpoint to see it here.</p>
-          <code>curl -X POST http://localhost:3000/a2a \<br>
-            &nbsp;&nbsp;-H "Authorization: Bearer YOUR_API_KEY" \<br>
-            &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
-            &nbsp;&nbsp;-d '{"jsonrpc":"2.0","id":1,"method":"tasks/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"Hello"}]}}}'
-          </code>
+        <!-- Threads rendered by JS -->
+      </div>
+
+      <!-- Tip bar (replaces old empty state) -->
+      <div class="tip-bar" id="tip-bar">
+        <div class="tip-bar-header" id="tip-bar-toggle">
+          <span class="tip-bar-icon">💡</span>
+          <span class="tip-bar-text">Tip: Send messages via <code>POST /a2a</code> with Bearer auth to see conversations here.</span>
+          <span class="tip-bar-chevron" id="tip-bar-chevron">▸</span>
+        </div>
+        <div class="tip-bar-detail" id="tip-bar-detail" hidden>
+          <pre><code>curl -X POST https://your-proxy.herokuapp.com/a2a \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tasks/send","params":{"message":{"role":"user","parts":[{"type":"text","text":"Hello"}]}}}'</code></pre>
         </div>
       </div>
 

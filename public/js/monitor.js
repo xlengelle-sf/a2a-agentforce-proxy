@@ -25,7 +25,6 @@ let eventSource = null;
 // ─── DOM refs ───────────────────────────────────────────────────────────────
 
 const container = document.getElementById('conversations-container');
-const emptyState = document.getElementById('empty-state');
 const scrollBtn = document.getElementById('scroll-to-bottom');
 const statTotal = document.getElementById('stat-total');
 const statConversations = document.getElementById('stat-conversations');
@@ -34,6 +33,19 @@ const connectionDot = document.getElementById('connection-dot');
 const connectionLabel = document.getElementById('connection-label');
 const clearBtn = document.getElementById('clear-btn');
 const logoutBtn = document.getElementById('logout-btn');
+
+// ─── Filter state ────────────────────────────────────────────────────────
+let activeDirectionFilter = 'all';
+let activeAgentFilter = 'all';
+const seenAgents = new Set();
+
+// ─── New DOM refs ────────────────────────────────────────────────────────
+const filterDirectionBtns = document.querySelectorAll('#filter-direction .filter-chip');
+const filterAgentSelect = document.getElementById('filter-agent-select');
+const tipBarToggle = document.getElementById('tip-bar-toggle');
+const tipBarDetail = document.getElementById('tip-bar-detail');
+const tipBar = document.getElementById('tip-bar');
+const tipBarChevron = document.getElementById('tip-bar-chevron');
 
 // ─── Tab switching ──────────────────────────────────────────────────────────
 
@@ -75,8 +87,34 @@ logoutBtn.addEventListener('click', async () => {
 clearBtn.addEventListener('click', () => {
   conversations.clear();
   latencies.length = 0;
+  seenAgents.clear();
+  updateAgentFilter();
   renderAllConversations();
   updateStats();
+});
+
+// ─── Filter handlers ─────────────────────────────────────────────────────
+
+filterDirectionBtns.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    filterDirectionBtns.forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDirectionFilter = btn.dataset.direction;
+    renderAllConversations();
+  });
+});
+
+filterAgentSelect.addEventListener('change', () => {
+  activeAgentFilter = filterAgentSelect.value;
+  renderAllConversations();
+});
+
+// ─── Tip bar toggle ──────────────────────────────────────────────────────
+
+tipBarToggle.addEventListener('click', () => {
+  const isExpanded = !tipBarDetail.hidden;
+  tipBarDetail.hidden = isExpanded;
+  tipBar.classList.toggle('expanded', !isExpanded);
 });
 
 // ─── SSE Connection ─────────────────────────────────────────────────────────
@@ -162,6 +200,11 @@ function addEvent(event, render) {
 
   thread.push(event);
 
+  // Track unique agents for filter dropdown
+  if (event.source) seenAgents.add(event.source);
+  if (event.target) seenAgents.add(event.target);
+  updateAgentFilter();
+
   // Track latency
   if (event.latencyMs && event.messageType === 'response') {
     latencies.push(event.latencyMs);
@@ -179,26 +222,44 @@ function addEvent(event, render) {
 
 // ─── Rendering ──────────────────────────────────────────────────────────────
 
-/** Render all conversations from scratch */
+/** Render all conversations from scratch, applying active filters */
 function renderAllConversations() {
-  // Remove all thread elements but keep empty state
-  container.querySelectorAll('.conversation-thread').forEach((el) => el.remove());
+  container.querySelectorAll('.conversation-thread, .date-separator').forEach((el) => el.remove());
 
-  if (conversations.size === 0) {
-    emptyState.hidden = false;
-    return;
-  }
-
-  emptyState.hidden = true;
-
-  // Sort threads by their first event timestamp
+  // Sort threads by latest event timestamp (newest first)
   const sorted = [...conversations.entries()].sort((a, b) => {
-    const ta = a[1][0]?.timestamp ?? '';
-    const tb = b[1][0]?.timestamp ?? '';
-    return ta.localeCompare(tb);
+    const ta = a[1][a[1].length - 1]?.timestamp ?? '';
+    const tb = b[1][b[1].length - 1]?.timestamp ?? '';
+    return tb.localeCompare(ta);
   });
 
+  let lastDateLabel = '';
+
   for (const [contextId, events] of sorted) {
+    // Apply direction filter
+    if (activeDirectionFilter !== 'all') {
+      const dir = events[0]?.direction;
+      if (dir !== activeDirectionFilter) continue;
+    }
+
+    // Apply agent filter
+    if (activeAgentFilter !== 'all') {
+      const hasAgent = events.some(
+        (e) => e.source === activeAgentFilter || e.target === activeAgentFilter
+      );
+      if (!hasAgent) continue;
+    }
+
+    // Date separator
+    const dateLabel = getDateLabel(events[events.length - 1]?.timestamp);
+    if (dateLabel && dateLabel !== lastDateLabel) {
+      lastDateLabel = dateLabel;
+      const sep = document.createElement('div');
+      sep.className = 'date-separator';
+      sep.innerHTML = `<span class="date-separator-label">${dateLabel}</span>`;
+      container.appendChild(sep);
+    }
+
     const threadEl = createThreadElement(contextId, events);
     container.appendChild(threadEl);
   }
@@ -206,28 +267,37 @@ function renderAllConversations() {
 
 /** Render a single new event — either into existing thread or new thread */
 function renderEvent(event) {
-  emptyState.hidden = true;
-
   let threadEl = container.querySelector(
     `[data-context-id="${CSS.escape(event.contextId)}"]`
   );
 
   if (!threadEl) {
-    // Create new thread with just this event
     threadEl = createThreadElement(event.contextId, [event]);
-    container.appendChild(threadEl);
-  } else {
-    // Append bubble to existing thread's message list
-    const messagesEl = threadEl.querySelector('.thread-messages');
-    const bubble = createBubble(event);
-    messagesEl.appendChild(bubble);
 
-    // Update thread header badge count
+    // Apply current filters — hide if doesn't match
+    if (activeDirectionFilter !== 'all' && event.direction !== activeDirectionFilter) {
+      threadEl.style.display = 'none';
+    }
+    if (activeAgentFilter !== 'all' && event.source !== activeAgentFilter && event.target !== activeAgentFilter) {
+      threadEl.style.display = 'none';
+    }
+
+    // Insert at top (newest first)
+    container.prepend(threadEl);
+  } else {
+    const messagesEl = threadEl.querySelector('.thread-messages');
+    messagesEl.appendChild(createBubble(event));
+
+    // Update header count and time
     const badge = threadEl.querySelector('.thread-count');
     const thread = conversations.get(event.contextId);
-    if (badge && thread) {
-      badge.textContent = thread.length + ' msgs';
-    }
+    if (badge && thread) badge.textContent = thread.length + ' msgs';
+
+    const timeEl = threadEl.querySelector('.thread-time');
+    if (timeEl) timeEl.textContent = formatTime(event.timestamp);
+
+    const dateEl = threadEl.querySelector('.thread-date');
+    if (dateEl) dateEl.textContent = formatDate(event.timestamp);
   }
 }
 
@@ -239,44 +309,42 @@ function renderEvent(event) {
  */
 function createThreadElement(contextId, events) {
   const threadEl = document.createElement('div');
-  threadEl.className = 'conversation-thread';
+  threadEl.className = 'conversation-thread collapsed'; // collapsed by default
   threadEl.dataset.contextId = contextId;
 
-  // Thread header (collapsible)
+  const latestEvent = events[events.length - 1];
+  const direction = events[0]?.direction ?? 'inbound';
+
   const header = document.createElement('div');
   header.className = 'thread-header';
   header.innerHTML = `
     <div class="thread-header-left">
-      <span class="thread-toggle">▼</span>
-      <span class="thread-direction-badge ${events[0]?.direction ?? 'inbound'}">
-        ${events[0]?.direction === 'outbound' ? '↗ Outbound' : '↙ Inbound'}
+      <span class="thread-toggle">▸</span>
+      <span class="thread-direction-badge ${direction}">
+        ${direction === 'outbound' ? '↗ OUTBOUND' : '↙ INBOUND'}
       </span>
-      <span class="thread-agents">
-        ${getThreadAgents(events)}
-      </span>
+      <span class="thread-agents">${getThreadAgents(events)}</span>
     </div>
     <div class="thread-header-right">
       <span class="thread-count">${events.length} msgs</span>
-      <span class="thread-time">${formatTime(events[0]?.timestamp)}</span>
+      <span class="thread-time">${formatTime(latestEvent?.timestamp)}</span>
+      <span class="thread-date">${formatDate(latestEvent?.timestamp)}</span>
     </div>
   `;
 
   header.addEventListener('click', () => {
     threadEl.classList.toggle('collapsed');
     const toggle = header.querySelector('.thread-toggle');
-    toggle.textContent = threadEl.classList.contains('collapsed') ? '▶' : '▼';
+    toggle.textContent = threadEl.classList.contains('collapsed') ? '▸' : '▾';
   });
 
   threadEl.appendChild(header);
 
-  // Messages
   const messagesEl = document.createElement('div');
   messagesEl.className = 'thread-messages';
-
   for (const event of events) {
     messagesEl.appendChild(createBubble(event));
   }
-
   threadEl.appendChild(messagesEl);
 
   return threadEl;
@@ -363,19 +431,36 @@ function getThreadAgents(events) {
   return [...agents].join(' ↔ ');
 }
 
-/** Format ISO timestamp to local time string */
+/** Format ISO timestamp to "HH:MM" */
 function formatTime(isoStr) {
   if (!isoStr) return '';
   try {
     const d = new Date(isoStr);
-    return d.toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  } catch {
-    return isoStr;
-  }
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  } catch { return isoStr; }
+}
+
+/** Format ISO timestamp to "Feb 17, 2026" */
+function formatDate(isoStr) {
+  if (!isoStr) return '';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return ''; }
+}
+
+/** Get a date label for grouping: "Today", "Yesterday", or "Feb 17, 2026" */
+function getDateLabel(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  const eventDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  if (eventDay.getTime() === today.getTime()) return 'Today';
+  if (eventDay.getTime() === yesterday.getTime()) return 'Yesterday';
+  return formatDate(isoStr);
 }
 
 /** Format latency in ms to a human-readable string */
@@ -400,6 +485,16 @@ function updateStats() {
   } else {
     statAvgLatency.textContent = '—';
   }
+}
+
+/** Populate the agent filter dropdown with seen agents */
+function updateAgentFilter() {
+  const current = filterAgentSelect.value;
+  const options = ['<option value="all">All agents</option>'];
+  for (const agent of [...seenAgents].sort()) {
+    options.push(`<option value="${agent}"${agent === current ? ' selected' : ''}>${agent}</option>`);
+  }
+  filterAgentSelect.innerHTML = options.join('');
 }
 
 // ─── Scroll management ─────────────────────────────────────────────────────

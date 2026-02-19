@@ -6,6 +6,13 @@
       "description": "NFL Expert Agent — answers questions about NFL teams, players, rules, stats, history, and fantasy football",
       "authType": "bearer",
       "authToken": "ENV:NFL_AGENT_TOKEN"
+    },
+    {
+      "alias": "econ-agent",
+      "url": "https://econ-intel-a2a-agent-bae47c4cf285.herokuapp.com",
+      "description": "Economic Research & Competitive Intelligence Agent — provides live data from FRED, SEC EDGAR, Finnhub, Alpha Vantage, FMP, World Bank, BLS, IMF, and Frankfurter APIs. Ask about macroeconomic indicators, company financials, stock prices, FX rates, labor statistics, and competitive analysis.",
+      "authType": "bearer",
+      "authToken": "ENV:ECON_AGENT_TOKEN"
     }
   ]
 }
